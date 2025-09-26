@@ -110,19 +110,6 @@ echip8_states chip8::execute(
     return state;
 }
 
-/*
-    std::atomic<bool> is_running = true;
-    std::thread timer_trick( [&]() -> void {
-        constexpr auto duration = std::chrono::milliseconds( 16 );
-
-        while ( is_running ) {
-            std::this_thread::sleep_for( duration );
-
-            cpu.update_timers( );
-        }
-    } );
-    */
-
 void chip8::try_wait(
     const uint32_t instruction_per_second,
     int& instruction_counter,
