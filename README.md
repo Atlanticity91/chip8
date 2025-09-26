@@ -22,10 +22,10 @@ To build on Windows, you need at least `Visual Studio 2022 Community Edition` or
 
 Run the following to generate the project files :
 
-'''bat
+```bat
 :: Windows batch file
 Setup-Windows.bat
-'''
+```
 
 ## Linux
 > [!CAUTION]
@@ -35,7 +35,7 @@ To build on Linux, you need a valid `GCC` installation with `C++20` support.
 
 Run the following to generate the project files :
 
-'''sh
+```sh
 # Linux shell script
 Setup-Linux.sh
-'''
+```
