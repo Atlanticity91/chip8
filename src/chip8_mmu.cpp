@@ -1,4 +1,4 @@
-#include "chip8_cmu.h"
+#include "chip8.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC ===
@@ -7,9 +7,12 @@ chip8_memory_manager_unit::chip8_memory_manager_unit( )
     : memory{ },
     registers{ },
     stack{ },
-    stack_top{ 0 },
-    rom_size{ 0 }
+    stack_top{ 0 }
 {
+    reset( );
+}
+
+void chip8_memory_manager_unit::reset( ) {
     const uint8_t font[] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
         0x20, 0x60, 0x20, 0x20, 0x70, // 1
@@ -29,7 +32,9 @@ chip8_memory_manager_unit::chip8_memory_manager_unit( )
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-    std::memmove( &memory[ eca_font_start ], font, sizeof( font ) );
+    auto* font_memory = get_font_memory( );
+
+    std::memmove( font_memory, font, sizeof( font ) );
 }
 
 void chip8_memory_manager_unit::write(
@@ -47,21 +52,6 @@ bool chip8_memory_manager_unit::push( const uint16_t address ) {
     }
 
     return false;
-}
-
-bool chip8_memory_manager_unit::load_rom( const char* rom_path ) {
-    if ( std::filesystem::is_regular_file( rom_path ) ) {
-        rom_size = uint16_t( std::filesystem::file_size( rom_path ) );
-
-        if ( rom_size > 0 ) {
-            auto* rom_memory = (char*)&memory[ eca_rom_start ];
-            auto rom_file = std::ifstream( rom_path, std::ios::binary );
-
-            rom_file.read( rom_memory, rom_size );
-        }
-    }
-
-    return rom_size > 0;
 }
 
 void chip8_memory_manager_unit::dump( ) {
@@ -113,7 +103,7 @@ void chip8_memory_manager_unit::dump_registers( ) {
 }
 
 void chip8_memory_manager_unit::dump_stack( ) {
-    printf( "> Stack (%2d/16) :\n", stack_top );
+    printf( "> Stack (%2d/%d) :\n", stack_top, StackSize );
 
     auto stack_id = 0;
 
@@ -124,6 +114,14 @@ void chip8_memory_manager_unit::dump_stack( ) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
+uint8_t* chip8_memory_manager_unit::get_font_memory( ) const {
+    return (uint8_t*)&memory[ eca_font_start ];
+}
+
+uint8_t* chip8_memory_manager_unit::get_rom_memory( ) const{
+    return (uint8_t*)&memory[ eca_rom_start ];
+}
+
 uint8_t& chip8_memory_manager_unit::v( const uint8_t register_id ) {
     return registers[ register_id ];
 }
@@ -137,14 +135,4 @@ std::tuple<uint16_t, bool> chip8_memory_manager_unit::pop( ) {
         return std::make_tuple( stack[ --stack_top ], true );
 
     return std::make_tuple( eca_null, false );
-}
-
-uint16_t chip8_memory_manager_unit::get_rom_size( ) const {
-    return rom_size;
-}
-
-uint16_t chip8_memory_manager_unit::fetch( const uint16_t cpu_pc ) const {
-    const auto address = eca_rom_start + cpu_pc;
-
-    return uint16_t( ( memory[ address ] << 8 ) | memory[ address + 1 ] );
 }

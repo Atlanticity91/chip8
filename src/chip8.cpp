@@ -1,7 +1,4 @@
-#include "chip8.h"
-
-#define cregister_op( OP, NAME )\
-    cpu.register_op( OP, #NAME, chip8_cpu_implementation::exec_##NAME )
+#include "chip8_timer_manager.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC ===
@@ -12,8 +9,29 @@ chip8::chip8(
 )
     : mmu{ },
     smu{ },
-    cpu{ legacy_mode, enable_print }
-{ 
+    cpu{ legacy_mode, enable_print },
+    rom{ }
+{
+    reset_opcodes( );
+}
+
+void chip8::override(
+    const uint8_t opcode,
+    const char* opcode_name,
+    chip8_opcode&& implementation
+) {
+    cpu.register_op( opcode, opcode_name, std::move( implementation ) );
+}
+
+void chip8::reset( ) {
+    mmu.reset( );
+    smu.clear( );
+}
+
+#define cregister_op( OP, NAME )\
+    cpu.register_op( OP, #NAME, chip8_cpu_implementation::exec_##NAME )
+
+void chip8::reset_opcodes( ) {
     cregister_op( 0x0, 0GGG_routine );
     cregister_op( 0x1, 1NNN_jump );
     cregister_op( 0x2, 2NNN_subroutines );
@@ -32,60 +50,16 @@ chip8::chip8(
     cregister_op( 0xF, FXGG_iomanip ); 
 }
 
-void chip8::override(
-    const uint8_t opcode,
-    const char* opcode_name,
-    chip8_opcode&& implementation
-) {
-    cpu.register_op( opcode, opcode_name, std::move( implementation ) );
+bool chip8::load_rom( const char* rom_path ) {
+    return rom.load( mmu, rom_path );
 }
 
-class echip8_timer_manager final {
+echip8_states chip8::execute( const uint32_t instruction_per_second ) {
+    if ( !rom.exist( ) )
+        return ecs_nip;
 
-    using clock_t = std::chrono::steady_clock;
-
-private:
-    std::atomic<bool> is_running;
-    std::thread thread;
-
-public:
-    echip8_timer_manager( chip8_cpu_manager_unit& cpu ) 
-        : is_running{ true }
-    {
-        auto exec_lambda = [&]() -> void {
-            constexpr auto duration = std::chrono::milliseconds( 16 );
-            auto next_tick = clock_t::now( ) + duration;
-
-            while ( is_running ) {
-                std::this_thread::sleep_until( next_tick );
-
-                next_tick = std::max( next_tick + duration, clock_t::now( ) );
-
-                cpu.update_timers( );
-            }
-        };
-
-        thread = std::move( std::thread( exec_lambda ) );
-    };
-
-    void terminate( ) {
-        if ( thread.joinable( ) ) {
-            is_running = false;
-
-            thread.join( );
-        }
-    };
-
-};
-
-echip8_states chip8::execute( 
-    const char* rom_path,
-    const uint32_t instruction_per_second
-) {
-    if ( !mmu.load_rom( rom_path ) )
-        return ecs_iir;
-
-    const auto rom_size = mmu.get_rom_size( );
+    const auto* rom_path = rom.get_path( );
+    const auto rom_size  = rom.get_size( );
 
     printf( "> Executing ROM : %s\n", rom_path );
 
@@ -94,8 +68,10 @@ echip8_states chip8::execute(
     auto cycle_start       = clock_t::now( );
     auto state             = ecs_run;
 
+    reset( );
+
     while ( cpu.PC < rom_size && state == ecs_run ) {
-        const auto instruction = mmu.fetch( cpu.PC );
+        const auto instruction = rom.fetch( mmu, cpu.PC );
 
         state = cpu.execute( instruction, mmu, smu );
 
@@ -108,6 +84,16 @@ echip8_states chip8::execute(
         state = ecs_eop;
 
     return state;
+}
+
+echip8_states chip8::execute( 
+    const char* rom_path,
+    const uint32_t instruction_per_second
+) {
+    if ( !rom.load( mmu, rom_path ) )
+        return ecs_iir;
+    
+    return execute( instruction_per_second );
 }
 
 void chip8::try_wait(

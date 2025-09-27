@@ -17,7 +17,8 @@
 enum echip8_states : uint8_t {
     ecs_run = 0,
     ecs_eop, // End Of Program
-    ecs_iir, // Invalid Input Rom
+    ecs_nip, // No Input ROM
+    ecs_iir, // Invalid Input ROM
     ecs_uop, // Unimplemented OPcode
     ecs_sgf, // Segmentation Fault
     ecs_iik, // Invalid Input Key

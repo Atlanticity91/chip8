@@ -24,6 +24,7 @@ private:
     chip8_memory_manager_unit mmu;
     chip8_screen_manager_unit smu;
     chip8_cpu_manager_unit cpu;
+    chip8_rom_manager_unit rom;
 
 public:
     /**
@@ -49,7 +50,31 @@ public:
         const char* opcode_name,
         chip8_opcode&& implementation
     );
+
+    /** 
+     * reset method
+     * @note Reset memory and screen to initial state.
+     **/
+    void reset( );
+
+    /** 
+     * reset method
+     * @note Reset cpu opcodes to initial state.
+     **/
+    void reset_opcodes( );
+
+    /**
+     * load_rom function
+     * @note Load ROM file to the memory.
+     * @param rom_path : Target ROM file path.
+     * @return True when ROM load succeded.
+     **/
+    bool load_rom( const char* rom_path );
     
+    echip8_states execute(
+        const uint32_t instruction_per_second = 700
+    );
+
     /**
      * execute function
      * @note Execute a rom with specified instruction per 

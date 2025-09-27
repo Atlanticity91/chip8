@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chip8_mmu.h"
+#include "chip8_rmu.h"
 
 /**
  * chip8_bitset template class

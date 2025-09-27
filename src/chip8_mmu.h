@@ -2,6 +2,8 @@
 
 #include "chip8_globals.h"
 
+// TODO Add unlimited call stack mode.
+
 /** 
  * chip8_memory_manager_unit class
  * @note Store and manage memory, call stack, registers and ROM.
@@ -17,13 +19,18 @@ private:
     std::array<uint8_t, RegisterCount> registers;
     std::array<uint16_t, StackSize> stack;
     uint8_t stack_top;
-    uint16_t rom_size;
 
 public:
     /**
      * Constucor
      **/
     chip8_memory_manager_unit( );
+
+    /**
+     * reset method
+     * @note Reset memory to initial state.
+     **/
+    void reset( );
 
     /**
      * write method
@@ -40,14 +47,6 @@ public:
      *         is already full.
      **/
     bool push( const uint16_t address );
-
-    /**
-     * load_rom function
-     * @note Load ROM file to the memory.
-     * @param rom_path : Target ROM file path.
-     * @return True when ROM load succeded.
-     **/
-    bool load_rom( const char* rom_path );
 
     /**
      * dump method
@@ -76,6 +75,20 @@ private:
 
 public:
     /**
+     * get_font_memory function
+     * @note Get font memory address.
+     * @return Return font memory address.
+     **/
+    uint8_t* get_font_memory( ) const;
+    
+    /**
+     * get_rom_memory function
+     * @note Get ROM memory address.
+     * @return Return ROM memory address.
+     **/
+    uint8_t* get_rom_memory( ) const;
+
+    /**
      * v function
      * @note Register accessor named v0-vf in chip 8, 
      *       put here for convenience.
@@ -100,20 +113,5 @@ public:
      *         true for success or false if try to pop empty stack.
      **/
     std::tuple<uint16_t, bool> pop( );
-
-    /**
-     * get_rom_size function
-     * @note Return the current loaded ROM size.
-     * @return Current loaded ROM size or 0 otherwise.
-     **/
-    uint16_t get_rom_size( ) const;
-
-    /**
-     * fetch function
-     * @note Fetch instruction from ROM.
-     * @param cpu_pc : Current cpu program counter value.
-     * @return Instruction from the ROM for PC.
-     **/
-    uint16_t fetch( const uint16_t cpu_pc ) const;
 
 };
