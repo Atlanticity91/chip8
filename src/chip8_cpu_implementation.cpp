@@ -394,7 +394,9 @@ namespace chip8_cpu_implementation {
     ) {
         printf( "Enter a character present in (0-9,a-f) : " );
 
-        return uint8_t( std::getc( stdin ) );
+        const auto key = uint8_t( std::getc( stdin ) );
+
+        return cpu.try_map_key( key );
     }
 
     uint8_t exec_get_key_random(
