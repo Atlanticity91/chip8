@@ -3,13 +3,18 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC ===
 ////////////////////////////////////////////////////////////////////////////////////////////
+chip8::chip8( )
+    : chip8{ false, true, true }
+{ }
+
 chip8::chip8( 
     const bool legacy_mode,
-    const bool enable_print
+    const bool enable_print,
+    const bool enable_stack_limit
 )
     : mmu{ },
     smu{ },
-    cpu{ legacy_mode, enable_print },
+    cpu{ legacy_mode, enable_print, enable_stack_limit },
     rom{ }
 {
     reset_opcodes( );
@@ -75,6 +80,24 @@ void chip8::set_option(
     cpu.set_option( option, value );
 }
 
+std::vector<chip8_string> chip8::parse_arguments(
+    const int argc,
+    char** argv
+) {
+    auto rom_list = std::vector<chip8_string>{ };
+
+    for ( auto arg_id = 1; arg_id < argc; arg_id++ ) {
+        const auto* argument = argv[ arg_id ];
+
+        if ( argument[ 0 ] == '-' )
+            parse_option( argument );
+        else if ( std::filesystem::is_regular_file( argument ) )
+            rom_list.emplace_back( argument );
+    }
+
+    return rom_list;
+}
+
 bool chip8::load_rom( chip8_string rom_path ) {
     return rom.load( mmu, rom_path );
 }
@@ -100,7 +123,8 @@ echip8_states chip8::execute( const uint32_t instruction_per_second ) {
 
         state = cpu.execute( instruction, mmu, smu );
 
-        try_wait( instruction_per_second, instruction_count, cycle_start );
+        if ( cpu.get_option( ecc_option_limit ) && instruction_per_second > 0 )
+            try_wait( instruction_per_second, instruction_count, cycle_start );
     }
 
     timer_manager.terminate( );
@@ -119,25 +143,6 @@ echip8_states chip8::execute(
         return ecs_iir;
     
     return execute( instruction_per_second );
-}
-
-void chip8::try_wait(
-    const uint32_t instruction_per_second,
-    int& instruction_counter,
-    clock_t::time_point& cycle_start
-) {
-    constexpr auto duration = std::chrono::seconds( 1 );
-
-    if ( ++instruction_counter == instruction_per_second ) {
-        auto stop = clock_t::now( );
-        auto elapsed = stop - cycle_start;
-        
-        if ( elapsed < duration )
-            std::this_thread::sleep_for( duration - elapsed );
-
-        instruction_counter = 0;
-        cycle_start         = stop;
-    }
 }
 
 void chip8::dump( const echip8_dump_modes mode ) {
@@ -179,6 +184,54 @@ void chip8::print_exec_state( const echip8_states exec_state ) {
     }
 
     printf( "> Execution State : %s\n", state_string );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE ===
+////////////////////////////////////////////////////////////////////////////////////////////
+void chip8::parse_option( chip8_string argument ) {
+    switch ( argument[ 1 ] ) {
+        case 'i' :
+        case 'I' :
+            cpu.set_option( ecc_option_limit, argument[ 2 ] == '1' );
+            break;
+
+        case 'l' :
+        case 'L' :
+            cpu.set_option( ecc_option_legacy, true );
+            break;
+
+        case 'p' :
+        case 'P' :
+            cpu.set_option( ecc_option_print, argument[ 2 ] == '1' );
+            break;
+
+        case 's' :
+        case 'S' :
+            cpu.set_option( ecc_option_stack, argument[ 2 ] == '1' );
+            break;
+
+        default: break;
+    }
+}
+
+void chip8::try_wait(
+    const uint32_t instruction_per_second,
+    int& instruction_counter,
+    clock_t::time_point& cycle_start
+) {
+    constexpr auto duration = std::chrono::seconds( 1 );
+
+    if ( ++instruction_counter == instruction_per_second ) {
+        auto stop = clock_t::now( );
+        auto elapsed = stop - cycle_start;
+
+        if ( elapsed < duration )
+            std::this_thread::sleep_for( duration - elapsed );
+
+        instruction_counter = 0;
+        cycle_start = stop;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

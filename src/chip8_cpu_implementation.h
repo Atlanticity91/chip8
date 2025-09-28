@@ -128,4 +128,10 @@ namespace chip8_cpu_implementation {
         const chip8_memory_manager_unit& mmu
     );
 
+    uint8_t exec_get_key_random(
+        const uint16_t instruction,
+        const chip8_cpu_manager_unit& cpu,
+        const chip8_memory_manager_unit& mmu
+    );
+
 };

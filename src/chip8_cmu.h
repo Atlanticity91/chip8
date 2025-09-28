@@ -31,10 +31,13 @@ struct chip8_cpu_manager_unit final {
      * @param legacy_mode : True to use this to make vx = vy before 
      *                      shift instructio calls.
      * @param enable_print : True to use printing during execution.
+     * @param enable_stack_limit : True to limit call stack to 16
+     *                             calls, origninal chip8 limit.
      **/
     chip8_cpu_manager_unit(
         const bool legacy_mode,
-        const bool enable_print
+        const bool enable_print,
+        const bool enable_stack_limit
     );
 
     /**

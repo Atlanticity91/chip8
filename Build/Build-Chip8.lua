@@ -20,7 +20,8 @@ project "chip8"
 		"%{IncludeDirs.chip8}chip8_cpu_timer_manager.cpp",
 		"%{IncludeDirs.chip8}chip8_mmu.cpp",
 		"%{IncludeDirs.chip8}chip8_rmu.cpp",
-		"%{IncludeDirs.chip8}chip8_smu.cpp"
+		"%{IncludeDirs.chip8}chip8_smu.cpp",
+		"%{IncludeDirs.chip8}chip8_stack_mananger.cpp"
 	}
 
 	--- LINUX

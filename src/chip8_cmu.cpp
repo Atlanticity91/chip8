@@ -5,7 +5,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////
 chip8_cpu_manager_unit::chip8_cpu_manager_unit(
     const bool legacy_mode,
-    const bool enable_print
+    const bool enable_print,
+    const bool enable_stack_limit
 )
     : PC{ 0 },
     I{ 0 },
@@ -15,6 +16,7 @@ chip8_cpu_manager_unit::chip8_cpu_manager_unit(
 {
     set_option( ecc_option_legacy, legacy_mode );
     set_option( ecc_option_print, enable_print );
+    set_option( ecc_option_stack, !enable_stack_limit );
 }
 
 void chip8_cpu_manager_unit::reset( ) {
@@ -189,7 +191,7 @@ uint8_t chip8_cpu_manager_unit::try_map_key( const uint8_t key ) const {
 }
 
 bool chip8_cpu_manager_unit::validate_key( const uint8_t key ) const {
-    return key < 16;
+    return key < eci_key_count;
 }
 
 std::tuple<bool, uint8_t> chip8_cpu_manager_unit::get_key(
@@ -197,7 +199,7 @@ std::tuple<bool, uint8_t> chip8_cpu_manager_unit::get_key(
     const chip8_memory_manager_unit& mmu
 ) const {
     auto key_valid = false;
-    auto key       = 0xff;
+    auto key       = uint8_t( eci_key_undefined );
 
     if ( get_key_callback ) {
         const auto key_value = std::invoke( get_key_callback, instruction, chip8_self, mmu );

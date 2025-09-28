@@ -6,9 +6,13 @@
 chip8_cpu_option_manager::chip8_cpu_option_manager( )
     : options{ 
         "use_legacy", 
-        "use_print"
+        "use_print",
+        "use_stack_limit",
+        "use_limit"
     }
-{ }
+{ 
+    set( ecc_option_limit, true );
+}
 
 void chip8_cpu_option_manager::set(
     const echip8_cpu_options option,

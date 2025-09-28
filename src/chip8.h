@@ -35,13 +35,21 @@ private:
 public:
     /**
      * Constructor
+     **/
+    chip8( );
+
+    /**
+     * Constructor
      * @param legacy_mode : True to use this to make vx = vy before 
      *                      shift instructio calls.
      * @param enable_print : True to use printing during execution.
+     * @param enable_stack_limit : True to limit call stack to 16
+     *                             calls, origninal chip8 limit.
      **/
     chip8( 
-        const bool legacy_mode = false,
-        const bool enable_print = true 
+        const bool legacy_mode,
+        const bool enable_print,
+        const bool enable_stack_limit
     );
 
     /** 
@@ -108,6 +116,19 @@ public:
     );
 
     /**
+     * parse_arguments function
+     * @note Parse executable arguments, get ROM list and 
+     *       apply options.
+     * @param argc : Target executable argument count.
+     * @param argv : Target executable argument values.
+     * @return List of ROM to execute.
+     */
+    std::vector<chip8_string> parse_arguments(
+        const int argc,
+        char** argv
+    );
+
+    /**
      * load_rom function
      * @note Load ROM file to the memory.
      * @param rom_path : Target ROM file path.
@@ -155,6 +176,13 @@ public:
     void print_exec_state( const echip8_states exec_state );
 
 private:
+    /**
+     * parse_option method
+     * @note Parse argument option.
+     * @param argument : Target argument to parse.
+     **/
+    void parse_option( chip8_string argument );
+
     /**
      * try_wait method
      * @note Try to wait some time to execute instruction

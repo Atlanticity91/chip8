@@ -1,8 +1,6 @@
 #pragma once
 
-#include "chip8_globals.h"
-
-// TODO Add unlimited call stack mode.
+#include "chip8_stack_mananger.h"
 
 /** 
  * chip8_memory_manager_unit class
@@ -12,13 +10,11 @@ class chip8_memory_manager_unit final {
 
     static constexpr uint16_t Capacity      = 4096;
     static constexpr uint16_t RegisterCount = 16;
-    static constexpr uint16_t StackSize     = 16;
 
 private:
     std::array<uint8_t, Capacity> memory;
     std::array<uint8_t, RegisterCount> registers;
-    std::array<uint16_t, StackSize> stack;
-    uint8_t stack_top;
+    chip8_stack_mananger stack;
 
 public:
     /**
@@ -43,10 +39,15 @@ public:
     /**
      * push function
      * @note Push address on top of the call stack.
+     * @param address : Target address to push.
+     * @param is_unlimited : True when the stack can grow infinitly.
      * @return True when address is adde, false when stack 
      *         is already full.
      **/
-    bool push( const uint16_t address );
+    bool push(
+        const uint16_t address,
+        const bool is_unlimited
+    );
 
     /**
      * dump method
@@ -79,12 +80,6 @@ private:
      * @note Dump register content.
      **/
     void dump_registers( ) const;
-
-    /**
-     * dump_stack method
-     * @note Dump stack content.
-     **/
-    void dump_stack( ) const;
 
     /**
      * print_memory method

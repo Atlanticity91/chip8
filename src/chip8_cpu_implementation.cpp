@@ -49,9 +49,10 @@ namespace chip8_cpu_implementation {
     ) {
         cpu.print_instruction( instruction, ecf_nnn );
 
-        const auto nnn = cpu.address( instruction );
+        const auto stack_option = cpu.get_option( ecc_option_stack );
+        const auto nnn          = cpu.address( instruction );
 
-        if ( mmu.push( cpu.PC ) ) {
+        if ( mmu.push( cpu.PC, stack_option ) ) {
             cpu.PC = nnn;
 
             return ecs_run;
@@ -350,8 +351,8 @@ namespace chip8_cpu_implementation {
                 }
                 break;
 
-            case 0x1E : cpu.I += mmu.v( x );          break; // Add to index
-            case 0x29 : cpu.I  = mmu.v( x );          break; // Font character
+            case 0x1E : cpu.I += mmu.v( x ); break; // Add to index
+            case 0x29 : cpu.I  = mmu.v( x ); break; // Font character
 
             //  Binary-coded decimal conversion
             case 0x33 :
@@ -368,7 +369,7 @@ namespace chip8_cpu_implementation {
 
             // Load memory
             case 0x65 :
-                for ( auto i = 0; i <  (x+1); i++ )
+                for ( auto i = 0; i < (x+1); i++ )
                     mmu.v( i ) = mmu.read( cpu.I + i );
                 break;
 
@@ -386,6 +387,14 @@ namespace chip8_cpu_implementation {
         printf( "Enter a character present in (0-9,a-f) : " );
 
         return uint8_t( std::getc( stdin ) );
+    }
+
+    uint8_t exec_get_key_random(
+        const uint16_t instruction,
+        const chip8_cpu_manager_unit& cpu,
+        const chip8_memory_manager_unit& mmu
+    ) {
+        return rand( ) % eci_key_count;
     }
 
 };

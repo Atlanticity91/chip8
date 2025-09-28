@@ -7,10 +7,11 @@ int main( int argc, char** argv ) {
         return -1;
     }
 
-    for ( auto rom_id = 1; rom_id < argc; rom_id++ ) {
-        const auto* rom_path = argv[ rom_id ];
-        auto chip8_emulator  = chip8{ };
-        auto exec_state      = chip8_emulator.execute( rom_path );
+    auto chip8_emulator = chip8{ };
+    auto rom_list       = chip8_emulator.parse_arguments( argc, argv );
+
+    for ( const auto* rom : rom_list ) {
+        auto exec_state = chip8_emulator.execute( rom );
 
         chip8_emulator.print_exec_state( exec_state );
 
@@ -19,7 +20,7 @@ int main( int argc, char** argv ) {
         else {
             chip8_emulator.dump( ecdm_all );
 
-            printf( "> Execution of ROM %s failed.", rom_path );
+            printf( "> Execution of ROM %s failed.", rom );
 
             break;
         }
