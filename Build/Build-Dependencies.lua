@@ -16,3 +16,4 @@ IncludeDirs = { }
 
 --- EXAMPLES PROJECT
 IncludeDirs[ 'chip8' ] = '%{wks.location}src/'
+IncludeDirs[ 'chip8_dap' ] = '%{wks.location}dap/src/'

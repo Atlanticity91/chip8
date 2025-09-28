@@ -28,4 +28,5 @@ workspace 'Chip8'
 
     --- PROJECTS
     include 'Build-Chip8.lua'
+    include 'Build-Dap.lua'
     include 'Build-Example.lua'

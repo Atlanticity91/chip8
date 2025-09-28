@@ -1,0 +1,42 @@
+#include "chip8_dap.h"
+#include "thirdparty/simdjson.h"
+
+#include <string>
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+chip8_dap::chip8_dap( )
+{ }
+
+void chip8_dap::send_response( const echip8_dap_command& command ) {
+}
+
+bool chip8_dap::execute_command(
+    const echip8_dap_command& command,
+    chip8& chip8_instance
+) {
+    return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC STATIC ===
+////////////////////////////////////////////////////////////////////////////////////////////
+int chip8_dap::run( int argc, char** argv ) {
+    auto emulator_dap = chip8_dap{ };
+    auto dap_command  = echip8_dap_command{ };
+    auto emulator     = chip8{ };
+
+    do {
+        dap_command = emulator_dap.receive_command( );
+    } while ( emulator_dap.execute_command( dap_command, emulator ) );
+
+    return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PUBLIC GET ===
+////////////////////////////////////////////////////////////////////////////////////////////
+echip8_dap_command chip8_dap::receive_command( ) {
+    return { ecd_command_quit, { } };
+}
