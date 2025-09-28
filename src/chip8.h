@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chip8_cmu.h"
+#include "chip8_cpu_implementation.h"
 
 /**
  * Define all dumping modes possible.
@@ -9,6 +9,12 @@ enum echip8_dump_modes : uint8_t {
     ecdm_screen = 0,
     ecdm_memory,
     ecdm_cpu,
+    ecdm_timers,
+    ecdm_opcodes,
+    ecdm_options,
+    ecdm_state,
+    ecdm_font,
+    ecdm_rom,
     ecdm_all
 };
 
@@ -39,29 +45,67 @@ public:
     );
 
     /** 
-     * override method
-     * @note Override instruction implementation.
-     * @param opcode : Target opcode to override.
-     * @param opcode_name : Target new opcode name.
-     * @param implementation : Target new opcode implementation.
-     **/
-    void override(
-        const uint8_t opcode,
-        const char* opcode_name,
-        chip8_opcode&& implementation
-    );
-
-    /** 
      * reset method
      * @note Reset memory and screen to initial state.
      **/
     void reset( );
 
     /** 
-     * reset method
+     * reset_opcodes method
      * @note Reset cpu opcodes to initial state.
      **/
     void reset_opcodes( );
+
+    /**
+     * reset_get_key method
+     * @note Reset cpu get key callback to initial state.
+     **/
+    void reset_get_key( );
+
+    /** 
+     * override_opcode method
+     * @note Override instruction implementation.
+     * @param opcode : Target opcode to override.
+     * @param opcode_name : Target new opcode name.
+     * @param implementation : Target new opcode implementation.
+     **/
+    void override_opcode(
+        const uint8_t opcode,
+        chip8_string opcode_name,
+        chip8_opcode&& implementation
+    );
+
+    /**
+     * override_key_callback method
+     * @note Set get key callback.
+     * @param callback : Target get key callback.
+     **/
+    void override_key_callback( chip8_get_key&& callback );
+
+    /**
+     * set_delay_timer method
+     * @note Set delay timer value.
+     * @param value : Target delay timer value.
+     **/
+    void set_delay_timer( const uint8_t value );
+
+    /**
+     * set_sound_timer method
+     * @note Set sound timer value.
+     * @param value : Target sound timer value.
+     **/
+    void set_sound_timer( const uint8_t value );
+
+    /**
+     * set_option method
+     * @note Set cpu option.
+     * @param option : Target option to update.
+     * @param value : Target option value.
+     **/
+    void set_option(
+        const echip8_cpu_options option,
+        const bool value
+    );
 
     /**
      * load_rom function
@@ -69,8 +113,15 @@ public:
      * @param rom_path : Target ROM file path.
      * @return True when ROM load succeded.
      **/
-    bool load_rom( const char* rom_path );
+    bool load_rom( chip8_string rom_path );
     
+    /**
+     * execute function
+     * @note Execute the currently stored ROM.
+     * @param instruction_per_second : Maximum instruction execution
+     *                                 per second.
+     * @return Emulateur state at the end of ROM execution.
+     **/
     echip8_states execute(
         const uint32_t instruction_per_second = 700
     );
@@ -85,7 +136,7 @@ public:
      * @return Emulateur state at the end of ROM execution.
      **/
     echip8_states execute( 
-        const char* rom_path,
+        chip8_string rom_path,
         const uint32_t instruction_per_second = 700
     );
 
@@ -122,6 +173,34 @@ private:
     );
 
 public:
+    /**
+     * get_mmu function
+     * @note Get reference to current memory manager unit.
+     * @return Reference to current memory manager unit.
+     **/
+    chip8_memory_manager_unit& get_mmu( );
+
+    /**
+     * get_smu function
+     * @note Get reference to current screen manager unit.
+     * @return Reference to current screen manager unit.
+     **/
+    chip8_screen_manager_unit& get_smu( );
+
+    /**
+     * get_cpu function
+     * @note Get reference to current cpu manager unit.
+     * @return Reference to current cpu manager unit.
+     **/
+    chip8_cpu_manager_unit& get_cpu( );
+    
+    /**
+     * get_rom function
+     * @note Get reference to current rom manager unit.
+     * @return Reference to current rom manager unit.
+     **/
+    chip8_rom_manager_unit& get_rom( );
+
     /**
      * get_screen_buffer function
      * @note Get access to screen buffer.

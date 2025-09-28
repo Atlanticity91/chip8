@@ -12,6 +12,24 @@
 #include <tuple>
 
 /**
+ * Define self macro, syntatic sugar.
+ **/
+#define chip8_self (*this)
+
+/**
+ * Define helper for printing buffer creation.
+ * @param FORMAT : Target printing format.
+ **/
+#define chip8_print_buffer( FORMAT )\
+    auto buffer = std::array<char, sizeof( FORMAT )>{ FORMAT };\
+    auto* buffer_str = buffer.data( )
+
+/**
+ * Define string type, syntatic sugar.
+ **/
+using chip8_string = const char*;
+
+/**
  * Define all possible state of the emulator
  **/
 enum echip8_states : uint8_t {
@@ -63,4 +81,13 @@ enum echip8_formats : uint8_t {
     ecf_xnn = 0,
     ecf_xyn,
     ecf_nnn
+};
+
+/**
+ * Define all possible cpu options.
+ **/
+enum echip8_cpu_options : uint8_t {
+    ecc_option_legacy = 0,
+    ecc_option_print,
+    ecc_option_count
 };

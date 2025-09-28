@@ -7,40 +7,63 @@ chip8_cpu_manager_unit::chip8_cpu_manager_unit(
     const bool legacy_mode,
     const bool enable_print
 )
-    : use_legacy{ legacy_mode },
-    use_print{ enable_print },
-    PC{ 0 },
+    : PC{ 0 },
     I{ 0 },
-    delay_timer{ 60 },
-    sound_timer{ 60 },
-    opcode_names{ "unimplemented" }
+    timers{ },
+    opcodes{ },
+    options{ }
 {
-    auto exec_unimplemented = [](
-        const uint16_t,
-        chip8_cpu_manager_unit&,
-        chip8_memory_manager_unit&,
-        chip8_screen_manager_unit&
-    ) { 
-        printf( "unimplemented\n" );
-            
-        return ecs_uop;
-    };
+    set_option( ecc_option_legacy, legacy_mode );
+    set_option( ecc_option_print, enable_print );
+}
 
-    for ( auto& opcode : opcodes )
-        opcode = exec_unimplemented;
+void chip8_cpu_manager_unit::reset( ) {
+    PC = 0;
+    I  = 0;
+
+    timers.reset( );
+}
+
+void chip8_cpu_manager_unit::set_delay_timer( const uint8_t value ) {
+    timers.set_delay( value );
+}
+
+void chip8_cpu_manager_unit::set_sound_timer( const uint8_t value ) {
+    timers.set_sound( value );
+}
+
+void chip8_cpu_manager_unit::register_op(
+    const uint8_t opcode,
+    chip8_string opcode_name,
+    chip8_opcode&& implementation
+) {
+    opcodes.set( opcode, opcode_name, std::move( implementation ) );
+}
+
+void chip8_cpu_manager_unit::set_option(
+    const echip8_cpu_options option,
+    const bool value
+) {
+    options.set( option, value );
+}
+
+void chip8_cpu_manager_unit::set_key_callback( chip8_get_key&& callback ) {
+    if ( callback )
+        get_key_callback = std::move( callback );
 }
 
 void chip8_cpu_manager_unit::print_instruction( 
     const uint16_t instruction,
     const echip8_formats format
-) {
-    if ( !use_print )
+) const {
+    if ( !options[ ecc_option_print ] )
         return;
 
     const auto line_size = 31;
-    const auto opcode = uint8_t( instruction >> 12 );
-    auto line = std::array<char, line_size>{ "0000 | 0x0 0x000 0x000 0x000 |" };
-    auto* line_string = line.data( );
+    const auto opcode    = uint8_t( instruction >> 12 );
+
+    chip8_print_buffer( "0000 | 0x0 0x000 0x000 0x000 |" );
+    
     auto x = uint16_t( nibble( ecn_x, instruction ) );
     auto y = uint16_t( nibble( ecn_y, instruction ) );
     auto n = uint16_t( nibble( ecn_n, instruction ) );
@@ -60,28 +83,13 @@ void chip8_cpu_manager_unit::print_instruction(
         default : break;
     }
 
-    std::snprintf( line_string, line_size, "%04X | 0x%X 0x%03X 0x%03X 0x%03X |", PC, opcode, x, y, n );
+    std::snprintf( buffer_str, line_size, "%04X | 0x%X 0x%03X 0x%03X 0x%03X |", PC, opcode, x, y, n );
 
-    printf( "%s\n", line_string );
-}
-
-void chip8_cpu_manager_unit::register_op(
-    const uint8_t opcode,
-    const char* opcode_name,
-    chip8_opcode&& implementation
-) {
-    if ( opcode < uint16_t( opcodes.size( ) ) && implementation ) {
-        opcodes[ opcode ] = std::move( implementation );
-        opcode_names[ opcode ] = opcode_name ? opcode_name : "~unnamed";
-    }
+    printf( "%s\n", buffer_str );
 }
 
 void chip8_cpu_manager_unit::update_timers( ) {
-    if ( delay_timer > 0 )
-        delay_timer -= 1;
-
-    if ( sound_timer > 0 )
-        sound_timer -= 1;
+    timers.update( );
 }
 
 void chip8_cpu_manager_unit::consume( ) { 
@@ -93,28 +101,60 @@ echip8_states chip8_cpu_manager_unit::execute(
     chip8_memory_manager_unit& mmu,
     chip8_screen_manager_unit& smu
 ) {
-    const auto instruction_opcode = uint16_t( instruction >> 12 );
-
     consume( );
 
-    return std::invoke( opcodes[ instruction_opcode ], instruction, *this, mmu, smu );
+    return opcodes.execute( instruction, chip8_self, mmu, smu );
 }
 
-void chip8_cpu_manager_unit::dump( chip8_memory_manager_unit& mmu ) {
+void chip8_cpu_manager_unit::dump_timers(  ) const {
+    timers.dump( );
+}
+
+void chip8_cpu_manager_unit::dump_opcodes( ) const {
+    opcodes.dump( );
+}
+
+void chip8_cpu_manager_unit::dump_options( ) const {
+    options.dump( );
+}
+
+void chip8_cpu_manager_unit::dump_state( ) const {
+    printf( "PC 0x%04X\nI 0x0%04X\n", PC, I );
+}
+
+void chip8_cpu_manager_unit::dump( chip8_memory_manager_unit& mmu ) const {
+    printf( "> CPU :\n" );
+    
+    dump_options( );
+    dump_state( );
+    dump_timers( );
     mmu.dump_cpu( );
-
-    printf( "> CPU :\nPC 0x%04X\nI 0x0%04X\nDelay Timer %3d\nSound Timer %3d\n", PC, I, delay_timer.load( ), sound_timer.load( ) );
-    printf( "> Instruction :\n" );
-
-    auto opcode = 0;
-
-    for ( const auto name : opcode_names )
-        printf( "[ 0x%02X ] %s\n", opcode++, name );
+    dump_opcodes( );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
+chip8_cpu_option_manager& chip8_cpu_manager_unit::get_options( ) {
+    return options;
+}
+
+bool chip8_cpu_manager_unit::get_option( const echip8_cpu_options option ) const {
+    return options.get( option );
+}
+
+chip8_string chip8_cpu_manager_unit::get_opcode_name( const uint8_t opcode ) const {
+    return opcodes.get_name( opcode );
+}
+
+uint8_t chip8_cpu_manager_unit::get_delay_timer( ) const {
+    return timers.get_delay( );
+}
+
+uint8_t chip8_cpu_manager_unit::get_sound_timer( ) const {
+    return timers.get_sound( );
+}
+
 uint8_t chip8_cpu_manager_unit::nibble(
     const echip8_nibbles target,
     const uint16_t instruction
@@ -135,4 +175,36 @@ uint16_t chip8_cpu_manager_unit::address(
     const uint16_t instruction
 ) const {
     return ( instruction & ecm_nnn );
+}
+
+uint8_t chip8_cpu_manager_unit::try_map_key( const uint8_t key ) const {
+    auto mapped_key = key;
+
+    if ( std::isdigit( key ) )
+        mapped_key = key - '0';
+    else if ( std::isxdigit( key ) )
+        mapped_key = ( std::tolower( key ) - 'a' ) + 0xA;
+
+    return mapped_key;
+}
+
+bool chip8_cpu_manager_unit::validate_key( const uint8_t key ) const {
+    return key < 16;
+}
+
+std::tuple<bool, uint8_t> chip8_cpu_manager_unit::get_key(
+    const uint16_t instruction,
+    const chip8_memory_manager_unit& mmu
+) const {
+    auto key_valid = false;
+    auto key       = 0xff;
+
+    if ( get_key_callback ) {
+        const auto key_value = std::invoke( get_key_callback, instruction, chip8_self, mmu );
+        
+        if ( key_valid = validate_key( key_value ) )
+            key = key_value;
+    }
+
+    return { key_valid, key };
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chip8_smu.h"
+#include "chip8_cmu.h"
 
 struct chip8_cpu_manager_unit;
 
@@ -120,6 +120,12 @@ namespace chip8_cpu_implementation {
         chip8_cpu_manager_unit& cpu,
         chip8_memory_manager_unit& mmu,
         chip8_screen_manager_unit& smu
+    );
+    
+    uint8_t exec_get_key_callback(
+        const uint16_t instruction,
+        const chip8_cpu_manager_unit& cpu,
+        const chip8_memory_manager_unit& mmu
     );
 
 };

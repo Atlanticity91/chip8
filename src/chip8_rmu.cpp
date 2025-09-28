@@ -10,7 +10,7 @@ chip8_rom_manager_unit::chip8_rom_manager_unit( )
 
 bool chip8_rom_manager_unit::load( 
     chip8_memory_manager_unit& mmu,
-    const char* rom_path
+    chip8_string rom_path
 ) {
     if ( std::filesystem::is_regular_file( rom_path ) ) {
         size = uint16_t( std::filesystem::file_size( rom_path ) );
@@ -26,11 +26,15 @@ bool chip8_rom_manager_unit::load(
     return size > 0;
 }
 
+void chip8_rom_manager_unit::dump( const chip8_memory_manager_unit& mmu ) const {
+    mmu.dump_rom( size );
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
 bool chip8_rom_manager_unit::exist( ) const {
-    return size > 0 && strcmp( path, "" ) != 0;
+    return size > 0;
 }
 
 std::tuple<uint8_t*, uint8_t*> chip8_rom_manager_unit::get( 
@@ -45,7 +49,7 @@ uint16_t chip8_rom_manager_unit::get_size( ) const {
     return size;
 }
 
-const char* chip8_rom_manager_unit::get_path( ) const {
+chip8_string chip8_rom_manager_unit::get_path( ) const {
     return exist( ) ? path : "";
 }
 

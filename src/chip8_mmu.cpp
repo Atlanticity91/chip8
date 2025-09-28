@@ -54,46 +54,36 @@ bool chip8_memory_manager_unit::push( const uint16_t address ) {
     return false;
 }
 
-void chip8_memory_manager_unit::dump( ) {
-    const auto hex_count = 16;
-    const auto hex = "0123456789ABCDEF";
-    auto line = std::array<char, 59>{ "0x0000 | 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F |" };
-    const auto* line_string = line.data( );
+void chip8_memory_manager_unit::dump( ) const {
+    printf( "> Memory :\n0x---- | 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F |\n" );
 
-    printf( "> Memory :\n%s\n", line_string );
-
-    for ( auto address = 0; address < Capacity; address += hex_count ) {
-        auto column_id = 2;
-
-        line[ column_id++ ] = hex[ ( address >> 12 ) & 0xF ];
-        line[ column_id++ ] = hex[ ( address >>  8 ) & 0xF ];
-        line[ column_id++ ] = hex[ ( address >>  4 ) & 0xF ];
-        line[ column_id++ ] = hex[ address & 0xF ];
-
-        column_id += 3;
-
-        for ( auto i = 0; i < hex_count; i++ ) {
-            const auto value = memory[ address + i ];
-
-            line[ column_id++ ] = hex[ ( value >> 4 ) & 0xF ];
-            line[ column_id++ ] = hex[ value & 0xF ];
-
-            column_id += 1;
-        }
-
-        printf( "%s\n", line_string );
-    }
+    print_memory( eca_null, Capacity );
 }
 
-void chip8_memory_manager_unit::dump_cpu( ) {
+void chip8_memory_manager_unit::dump_cpu( ) const {
     dump_registers( );
     dump_stack( );
+}
+
+void chip8_memory_manager_unit::dump_font( ) const {
+    constexpr auto font_length = eca_font_stop - eca_font_start;
+
+    print_memory( eca_font_start, font_length );
+}
+
+void chip8_memory_manager_unit::dump_rom( const uint16_t rom_size ) const {
+    printf( "> ROM :\n" );
+
+    if ( rom_size == 0 )
+        return;
+
+    print_memory( eca_rom_start, rom_size );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PRIVATE ===
 ////////////////////////////////////////////////////////////////////////////////////////////
-void chip8_memory_manager_unit::dump_registers( ) {
+void chip8_memory_manager_unit::dump_registers( ) const {
     printf( "> Regisrers :\n" );
     
     auto idx = 0;
@@ -102,13 +92,54 @@ void chip8_memory_manager_unit::dump_registers( ) {
         printf( "v[ %X ] %2X\n", idx++, regiser );
 }
 
-void chip8_memory_manager_unit::dump_stack( ) {
+void chip8_memory_manager_unit::dump_stack( ) const {
     printf( "> Stack (%2d/%d) :\n", stack_top, StackSize );
 
     auto stack_id = 0;
 
     while ( stack_id < StackSize )
         printf( "[ %2d ] 0x%4X\n", stack_id, stack[ stack_id++ ] );
+}
+
+void chip8_memory_manager_unit::print_memory(
+    const uint16_t address,
+    const uint16_t length
+) const {
+    constexpr auto hex_count = 16;
+    constexpr auto hex       = "0123456789ABCDEF";
+
+    const auto memory_stop = std::min( uint16_t( address + length ), Capacity );
+    auto memory_address    = address;
+
+    chip8_print_buffer( "0x0000 | 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F |" );
+
+    auto in_range = [ address, memory_stop ]( const uint16_t byte_id ) -> bool {
+        return address + byte_id < memory_stop;
+    };
+
+    while ( memory_address < memory_stop ) {
+        auto column_id = 2;
+
+        buffer[ column_id++ ] = hex[ ( address >> 12 ) & 0xF ];
+        buffer[ column_id++ ] = hex[ ( address >>  8 ) & 0xF ];
+        buffer[ column_id++ ] = hex[ ( address >>  4 ) & 0xF ];
+        buffer[ column_id++ ] = hex[ address & 0xF ];
+
+        column_id += 3;
+
+        for ( auto i = 0; i < hex_count && in_range( i ); i++ ) {
+            const auto value = memory[ address + i ];
+
+            buffer[ column_id++ ] = hex[ ( value >> 4 ) & 0xF ];
+            buffer[ column_id++ ] = hex[ value & 0xF ];
+
+            column_id += 1;
+        }
+
+        memory_address += hex_count;
+        
+        printf( "%s\n", buffer_str );
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

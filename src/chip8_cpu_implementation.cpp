@@ -172,7 +172,7 @@ namespace chip8_cpu_implementation {
 
             // Shift 1 >>
             case 0x6 :
-                if ( cpu.use_legacy )
+                if ( cpu.get_option( ecc_option_legacy ) )
                     mmu.v( x ) = mmu.v( y );
 
                 mmu.v( 0xF ) = mmu.v( x ) & 0x01;
@@ -187,7 +187,7 @@ namespace chip8_cpu_implementation {
 
             // Shift 1 << 
             case 0xE :
-                if ( cpu.use_legacy )
+                if ( cpu.get_option( ecc_option_legacy ) )
                     mmu.v( x ) = mmu.v( y );
 
                 mmu.v( 0xF ) = ( mmu.v( x ) & 0x80 ) >> 7;
@@ -296,36 +296,18 @@ namespace chip8_cpu_implementation {
         return ecs_run;
     }
 
-    bool get_key_is_valid( const char key ) {
-        return ( key >= '0' && key <= '9' ) || ( key >= 'a' && key <= 'f' ) || ( key >= 'A' && key <= 'F' );
-    }
-
-    uint8_t get_key_mapping( const char key ) {
-        auto mapped_key = key;
-
-        if ( key >= '0' && key <= '9' )
-            mapped_key = key - '0';
-        else if ( key >= 'a' && key <= 'f' )
-            mapped_key = ( key - 'a' ) + 0xA;
-        else if ( key >= 'A' && key <= 'F' )
-            mapped_key = ( key - 'A' ) + 0xA;
-
-        return uint8_t( mapped_key );
-    }
-
     echip8_states exec_get_key(
         const uint16_t instruction,
         chip8_cpu_manager_unit& cpu,
         chip8_memory_manager_unit& mmu,
         chip8_screen_manager_unit& smu
     ) {
-        printf( "Enter a character present in (0-9,a-f) : " );
+        const auto [ is_valid, key ] = cpu.get_key( instruction, mmu );
         
-        const auto key = std::getc( stdin );
-        const auto x = cpu.nibble( ecn_x, instruction );
-        
-        if ( key != EOF && get_key_is_valid( key ) ) {
-            mmu.v( x ) = get_key_mapping( key );
+        if ( is_valid ) {
+            const auto x = cpu.nibble( ecn_x, instruction );
+
+            mmu.v( x ) = key;
 
             return ecs_run;
         }
@@ -345,13 +327,29 @@ namespace chip8_cpu_implementation {
         const auto nn = cpu.nibble( ecn_nn, instruction );
 
         switch ( nn ) {
-            case 0x07 : mmu.v( x ) = cpu.delay_timer; break;
+            case 0x07 : mmu.v( x ) = cpu.get_delay_timer( ); break;
 
             // Get key
             case 0x0A : return exec_get_key( instruction, cpu, mmu, smu );
             
-            case 0x15 : cpu.delay_timer = mmu.v( x ); break; // Set delay timer
-            case 0x18 : cpu.sound_timer = mmu.v( x ); break; // Set sound timer
+            // Set delay timer
+            case 0x15 : 
+                {
+                    const auto vx = mmu.v( x );
+
+                    cpu.set_delay_timer( vx ); 
+                }
+                break;
+
+            // Set sound timer
+            case 0x18 : 
+                { 
+                    const auto vx = mmu.v( x );
+
+                    cpu.set_sound_timer( vx );
+                }
+                break;
+
             case 0x1E : cpu.I += mmu.v( x );          break; // Add to index
             case 0x29 : cpu.I  = mmu.v( x );          break; // Font character
 
@@ -362,12 +360,14 @@ namespace chip8_cpu_implementation {
                 mmu.write( cpu.I + 2, mmu.v( x ) % 10         );
                 break;
             
-            case 0x55 : //Store memory
+            //Store memory
+            case 0x55 :
                 for ( auto i = 0; i < (x+1); i++ )
                     mmu.write( cpu.I + i, mmu.v( i ) );
                 break;
 
-            case 0x65 : // Load memory
+            // Load memory
+            case 0x65 :
                 for ( auto i = 0; i <  (x+1); i++ )
                     mmu.v( i ) = mmu.read( cpu.I + i );
                 break;
@@ -376,6 +376,16 @@ namespace chip8_cpu_implementation {
         }
 
         return ecs_run;
+    }
+
+    uint8_t exec_get_key_callback(
+        const uint16_t instruction,
+        const chip8_cpu_manager_unit& cpu,
+        const chip8_memory_manager_unit& mmu
+    ) {
+        printf( "Enter a character present in (0-9,a-f) : " );
+
+        return uint8_t( std::getc( stdin ) );
     }
 
 };

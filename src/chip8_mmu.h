@@ -52,26 +52,50 @@ public:
      * dump method
      * @note Dump entire memory content.
      **/
-    void dump( );
+    void dump( ) const;
 
     /**
      * dump_cpu method
      * @note Dump stack and register content.
      **/
-    void dump_cpu( );
+    void dump_cpu( ) const;
+
+    /**
+     * dump_font method
+     * @note Dump font data from memory.
+     **/
+    void dump_font( ) const;
+
+    /**
+     * dump_rom method
+     * @note Dump ROM data from memory.
+     * @param rom_size : Target bytes to print from ROM.
+     **/
+    void dump_rom( const uint16_t rom_size ) const;
 
 private:
     /**
      * dump_registers method
      * @note Dump register content.
      **/
-    void dump_registers( );
+    void dump_registers( ) const;
 
     /**
      * dump_stack method
      * @note Dump stack content.
      **/
-    void dump_stack( );
+    void dump_stack( ) const;
+
+    /**
+     * print_memory method
+     * @note Print formated memory content.
+     * @param address : Target memory starting address.
+     * @param length : Target memory buffer length.
+     **/
+    void print_memory(
+        const uint16_t address,
+        const uint16_t length
+    ) const;
 
 public:
     /**

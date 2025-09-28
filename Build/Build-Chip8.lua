@@ -15,6 +15,9 @@ project "chip8"
 		"%{IncludeDirs.chip8}chip8.cpp",
 		"%{IncludeDirs.chip8}chip8_cmu.cpp",
 		"%{IncludeDirs.chip8}chip8_cpu_implementation.cpp",
+		"%{IncludeDirs.chip8}chip8_cpu_opcode_manager.cpp",
+		"%{IncludeDirs.chip8}chip8_cpu_option_manager.cpp",
+		"%{IncludeDirs.chip8}chip8_cpu_timer_manager.cpp",
 		"%{IncludeDirs.chip8}chip8_mmu.cpp",
 		"%{IncludeDirs.chip8}chip8_rmu.cpp",
 		"%{IncludeDirs.chip8}chip8_smu.cpp"

@@ -19,7 +19,7 @@ int main( int argc, char** argv ) {
         else {
             chip8_emulator.dump( ecdm_all );
 
-            printf( "> Execution of ROM %s failed, exiting execution.", rom_path );
+            printf( "> Execution of ROM %s failed.", rom_path );
 
             break;
         }

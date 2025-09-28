@@ -13,19 +13,13 @@ chip8::chip8(
     rom{ }
 {
     reset_opcodes( );
-}
-
-void chip8::override(
-    const uint8_t opcode,
-    const char* opcode_name,
-    chip8_opcode&& implementation
-) {
-    cpu.register_op( opcode, opcode_name, std::move( implementation ) );
+    reset_get_key( );
 }
 
 void chip8::reset( ) {
     mmu.reset( );
     smu.clear( );
+    cpu.reset( );
 }
 
 #define cregister_op( OP, NAME )\
@@ -50,7 +44,38 @@ void chip8::reset_opcodes( ) {
     cregister_op( 0xF, FXGG_iomanip ); 
 }
 
-bool chip8::load_rom( const char* rom_path ) {
+void chip8::reset_get_key( ) {
+    cpu.set_key_callback( chip8_cpu_implementation::exec_get_key_callback );
+}
+
+void chip8::override_opcode(
+    const uint8_t opcode,
+    chip8_string opcode_name,
+    chip8_opcode&& implementation
+) {
+    cpu.register_op( opcode, opcode_name, std::move( implementation ) );
+}
+
+void chip8::override_key_callback( chip8_get_key&& callback ) {
+    cpu.set_key_callback( std::move( callback ) );
+}
+
+void chip8::set_delay_timer( const uint8_t value ) {
+    cpu.set_delay_timer( value );
+}
+
+void chip8::set_sound_timer( const uint8_t value ) {
+    cpu.set_sound_timer( value );
+}
+
+void chip8::set_option(
+    const echip8_cpu_options option,
+    const bool value
+) {
+    cpu.set_option( option, value );
+}
+
+bool chip8::load_rom( chip8_string rom_path ) {
     return rom.load( mmu, rom_path );
 }
 
@@ -87,7 +112,7 @@ echip8_states chip8::execute( const uint32_t instruction_per_second ) {
 }
 
 echip8_states chip8::execute( 
-    const char* rom_path,
+    chip8_string rom_path,
     const uint32_t instruction_per_second
 ) {
     if ( !rom.load( mmu, rom_path ) )
@@ -119,9 +144,15 @@ void chip8::dump( const echip8_dump_modes mode ) {
     printf( "\n=== DUMP ===\n" );
 
     switch ( mode ) {
-        case ecdm_screen : smu.dump( );     break;
-        case ecdm_memory : mmu.dump( );     break;
-        case ecdm_cpu    : cpu.dump( mmu ); break;
+        case ecdm_screen  : smu.dump( );         break;
+        case ecdm_memory  : mmu.dump( );         break;
+        case ecdm_cpu     : cpu.dump( mmu );     break;
+        case ecdm_timers  : cpu.dump_timers( );  break;
+        case ecdm_opcodes : cpu.dump_opcodes( ); break;
+        case ecdm_options : cpu.dump_options( ); break;
+        case ecdm_state   : cpu.dump_state( );   break;
+        case ecdm_font    : mmu.dump_font( );    break;
+        case ecdm_rom     : rom.dump( mmu );     break;
 
         case ecdm_all :
             cpu.dump( mmu );
@@ -139,6 +170,7 @@ void chip8::print_exec_state( const echip8_states exec_state ) {
     switch ( exec_state ) {
         case ecs_run : state_string = "Running";              break;
         case ecs_eop : state_string = "End Of Program";       break;
+        case ecs_nip : state_string = "No Input ROM";         break;
         case ecs_iir : state_string = "Invalid Input Rom";    break;
         case ecs_uop : state_string = "Unimplemented OPcode"; break;
         case ecs_sgf : state_string = "Seg Fault";            break;
@@ -152,6 +184,22 @@ void chip8::print_exec_state( const echip8_states exec_state ) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 //		===	PUBLIC GET ===
 ////////////////////////////////////////////////////////////////////////////////////////////
+chip8_memory_manager_unit& chip8::get_mmu( ) {
+    return mmu;
+}
+
+chip8_screen_manager_unit& chip8::get_smu( ) {
+    return smu;
+}
+
+chip8_cpu_manager_unit& chip8::get_cpu( ) {
+    return cpu;
+} 
+
+chip8_rom_manager_unit& chip8::get_rom( ) {
+    return rom;
+}
+
 const uint8_t* chip8::get_screen_buffer( ) const {
     return smu.get_screen_buffer( );
 }

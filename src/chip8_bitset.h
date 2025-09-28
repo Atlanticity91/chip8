@@ -61,7 +61,7 @@ class chip8_bitset final {
             if ( bitset )
                 bitset->set_bit( bit_id, other.bit_value );
 
-            return *this;
+            return chip8_self;
         };
 
     };

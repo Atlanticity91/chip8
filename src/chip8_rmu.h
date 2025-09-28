@@ -8,11 +8,9 @@
  **/
 class chip8_rom_manager_unit final {
 
-    using string_t = const char*;
-
 private:
     uint16_t size;
-    const char* path;
+    chip8_string path;
 
 public:
     /**
@@ -29,8 +27,15 @@ public:
      **/
     bool load( 
         chip8_memory_manager_unit& mmu,
-        const char* rom_path
+        chip8_string rom_path
     );
+
+    /**
+     * dump method
+     * @note Dump the entire ROM content.
+     * @param mpu : Reference to current memory manager unit.
+     **/
+    void dump( const chip8_memory_manager_unit& mmu ) const;
 
 public:
     /**
@@ -62,7 +67,7 @@ public:
      * @note Get current loaded ROM path.
      * @return ROM path or empty string.
      **/
-    const char* get_path( ) const;
+    chip8_string get_path( ) const;
 
     /**
      * fetch function
