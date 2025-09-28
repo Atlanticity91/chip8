@@ -15,6 +15,7 @@ private:
     std::array<uint8_t, Capacity> memory;
     std::array<uint8_t, RegisterCount> registers;
     chip8_stack_mananger stack;
+    uint16_t keys;
 
 public:
     /**
@@ -47,6 +48,17 @@ public:
     bool push(
         const uint16_t address,
         const bool is_unlimited
+    );
+
+    /**
+     * set_key method
+     * @note Set key state.
+     * @param key : Target key.
+     * @param key_pressed : True if the target key is pressed.
+     **/
+    void set_key( 
+        const echip8_input_keys key,
+        const bool key_pressed
     );
 
     /**
@@ -132,5 +144,13 @@ public:
      *         true for success or false if try to pop empty stack.
      **/
     std::tuple<uint16_t, bool> pop( );
+    
+    /**
+     * key function
+     * @note Get state of a key.
+     * @param key_id : Target key.
+     * @return True when the key is pressed, false otherwise.
+     **/
+    bool key( const uint8_t key_id ) const;
 
 };

@@ -50,6 +50,18 @@ bool chip8_memory_manager_unit::push(
     return stack.push( address, is_unlimited );
 }
 
+void chip8_memory_manager_unit::set_key(
+    const echip8_input_keys key,
+    const bool key_pressed
+) {
+    const auto key_id = uint8_t( key );
+
+    if ( key_pressed )
+        keys |= ( 1 << key_id );
+    else
+        keys &= ~( 1 << key_id );
+}
+
 void chip8_memory_manager_unit::dump( ) const {
     printf( "> Memory :\n       | 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E 0F |\n" );
 
@@ -150,4 +162,10 @@ uint8_t chip8_memory_manager_unit::read( const uint16_t address ) const {
     
 std::tuple<uint16_t, bool> chip8_memory_manager_unit::pop( ) {
     return stack.pop( );
+}
+
+bool chip8_memory_manager_unit::key( const uint8_t key_id ) const {
+    const auto key_state = keys >> ( 15 - key_id );
+
+    return key_state & 0x01;
 }

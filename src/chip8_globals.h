@@ -42,6 +42,7 @@ enum echip8_states : uint8_t {
     ecs_uop, // Unimplemented OPcode
     ecs_sgf, // Segmentation Fault
     ecs_iik, // Invalid Input Key
+    ecs_epv, // End of Program with Value
 };
 
 /**

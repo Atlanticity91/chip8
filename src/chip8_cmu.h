@@ -244,7 +244,7 @@ struct chip8_cpu_manager_unit final {
      **/
     std::tuple<bool, uint8_t> get_key(
         const uint16_t instruction,
-        const chip8_memory_manager_unit& mmu
+        chip8_memory_manager_unit& mmu
     ) const;
 
 };

@@ -196,7 +196,7 @@ bool chip8_cpu_manager_unit::validate_key( const uint8_t key ) const {
 
 std::tuple<bool, uint8_t> chip8_cpu_manager_unit::get_key(
     const uint16_t instruction,
-    const chip8_memory_manager_unit& mmu
+    chip8_memory_manager_unit& mmu
 ) const {
     auto key_valid = false;
     auto key       = uint8_t( eci_key_undefined );
@@ -204,8 +204,11 @@ std::tuple<bool, uint8_t> chip8_cpu_manager_unit::get_key(
     if ( get_key_callback ) {
         const auto key_value = std::invoke( get_key_callback, instruction, chip8_self, mmu );
         
-        if ( key_valid = validate_key( key_value ) )
+        if ( key_valid = validate_key( key_value ) ) {
             key = key_value;
+
+            mmu.set_key( echip8_input_keys( key ), key_value );
+        }
     }
 
     return { key_valid, key };

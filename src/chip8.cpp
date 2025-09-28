@@ -253,6 +253,10 @@ chip8_rom_manager_unit& chip8::get_rom( ) {
     return rom;
 }
 
+uint8_t chip8::get_exit_code( ) const {
+    return mmu.read( eca_null );
+}
+
 const uint8_t* chip8::get_screen_buffer( ) const {
     return smu.get_screen_buffer( );
 }

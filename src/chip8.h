@@ -230,6 +230,14 @@ public:
     chip8_rom_manager_unit& get_rom( );
 
     /**
+     * get_exit_code function
+     * @note Get the return value of a program ended 
+     *       with ecs_epv.
+     * @return Value store at address 0
+     */
+    uint8_t get_exit_code( ) const;
+
+    /**
      * get_screen_buffer function
      * @note Get access to screen buffer.
      * @return Pointer to imutable screen buffer.

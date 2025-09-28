@@ -13,7 +13,14 @@ namespace chip8_cpu_implementation {
     ) {
         cpu.print_instruction( instruction, ecf_nnn );
 
-        if ( instruction == 0x00E0 ) {
+        // Peter Miler's exit emulator
+        if ( instruction & 0x0010 ) {
+            const auto n = uint8_t( instruction & 0x000F );
+
+            mmu.write( eca_null, n );
+
+            return ecs_epv;
+        } else if ( instruction == 0x00E0 ) {
             smu.clear( );
 
             return ecs_run;
@@ -290,8 +297,9 @@ namespace chip8_cpu_implementation {
 
         const auto x  = cpu.nibble( ecn_x , instruction );
         const auto nn = cpu.nibble( ecn_nn, instruction );
+        const auto vx = mmu.v( x );
 
-        if ( ( nn == 0x9E && mmu.v( x ) ) || ( nn == 0xA1 && !mmu.v( x ) ) )
+        if ( ( nn == 0x9E && mmu.key( vx ) ) || ( nn == 0xA1 && !mmu.key( vx ) ) )
             cpu.consume( );
 
         return ecs_run;
