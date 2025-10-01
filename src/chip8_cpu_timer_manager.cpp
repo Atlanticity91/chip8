@@ -8,6 +8,11 @@ chip8_cpu_timer_manager::chip8_cpu_timer_manager( )
     reset( ); 
 }
 
+
+void chip8_cpu_timer_manager::set_make_noise( chip8_make_noise_callback&& callback ) {
+    user_make_noise = std::move( callback );
+}
+
 void chip8_cpu_timer_manager::reset( ) {
     delay_timer = 60;
     sound_timer = 60;
@@ -25,8 +30,11 @@ void chip8_cpu_timer_manager::update( ) {
     if ( delay_timer > 0 )
         delay_timer -= 1;
 
-    if ( sound_timer > 0 )
+    if ( sound_timer > 0 ) {
         sound_timer -= 1;
+
+        invoke_make_noise( );
+    }
 }
 
 void chip8_cpu_timer_manager::dump( ) const {
@@ -34,6 +42,16 @@ void chip8_cpu_timer_manager::dump( ) const {
     const auto sound_value = sound_timer.load( );
 
     printf( "Delay Timer %3d\nSound Timer %3d\n", delay_value, sound_value );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//		===	PRIVATE ===
+////////////////////////////////////////////////////////////////////////////////////////////
+void chip8_cpu_timer_manager::invoke_make_noise( ) {
+    if ( !user_make_noise )
+        return;
+
+    std::invoke( user_make_noise );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

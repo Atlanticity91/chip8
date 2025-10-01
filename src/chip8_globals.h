@@ -120,3 +120,51 @@ enum echip8_input_keys : uint8_t {
     eci_key_count,
     eci_key_undefined = 0xFF
 };
+
+/**
+ * Define chip8_get_key_callback function signature.
+ * @note Any function that match can be use to define 
+ *       cpu get_key callback.
+ **/
+using chip8_get_key_callback = std::function<uint8_t(
+    const uint16_t,
+    const struct chip8_cpu_manager_unit&,
+    const class chip8_memory_manager_unit&
+)>;
+
+/**
+ * chip8_make_noise_callback function
+ * @note Any function that match can be use to define
+ *       the management of sound making.
+ **/
+using chip8_make_noise_callback = std::function<void()>;
+
+/**
+ * Define payload for sprite.
+ * @field sprite : Target sprite to render.
+ * @field screen_x : Sprite rendering starting x position.
+ * @field position_y : Display target y position.
+ **/
+struct chip8_sprite_payload {
+    const uint8_t sprite;
+    const uint8_t screen_x;
+    const uint8_t position_y;
+};
+
+/**
+ * chip8_display_clear_callback function
+ * @note Any function with this signature can be use for
+ *       custom call after display clear call.
+ **/
+using chip8_display_clear_callback = std::function<void( )>;
+
+/**
+ * chip8_display_draw_callback function
+ * @note Any function with this signature can be use for
+ *       custom call after display draw call.
+ **/
+using chip8_display_draw_callback = std::function<void( 
+    const uint8_t*,
+    const uint8_t,
+    const uint8_t
+)>;

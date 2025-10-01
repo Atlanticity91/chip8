@@ -19,6 +19,10 @@ chip8_cpu_manager_unit::chip8_cpu_manager_unit(
     set_option( ecc_option_stack, !enable_stack_limit );
 }
 
+void chip8_cpu_manager_unit::set_make_noise( chip8_make_noise_callback&& callback ) {
+    timers.set_make_noise( std::move( callback ) );
+}
+
 void chip8_cpu_manager_unit::reset( ) {
     PC = 0;
     I  = 0;
@@ -49,9 +53,8 @@ void chip8_cpu_manager_unit::set_option(
     options.set( option, value );
 }
 
-void chip8_cpu_manager_unit::set_key_callback( chip8_get_key&& callback ) {
-    if ( callback )
-        get_key_callback = std::move( callback );
+void chip8_cpu_manager_unit::set_key_callback( chip8_get_key_callback&& callback ) {
+    user_get_key = std::move( callback );
 }
 
 void chip8_cpu_manager_unit::print_instruction( 
@@ -201,8 +204,8 @@ std::tuple<bool, uint8_t> chip8_cpu_manager_unit::get_key(
     auto key_valid = false;
     auto key       = uint8_t( eci_key_undefined );
 
-    if ( get_key_callback ) {
-        const auto key_value = std::invoke( get_key_callback, instruction, chip8_self, mmu );
+    if ( user_get_key ) {
+        const auto key_value = std::invoke( user_get_key, instruction, chip8_self, mmu );
         
         if ( key_valid = validate_key( key_value ) ) {
             key = key_value;

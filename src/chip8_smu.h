@@ -2,8 +2,6 @@
 
 #include "chip8_bitset.h"
 
-struct chip8_cpu_manager_unit;
-
 /** 
  * Define payload for display.
  * @field vx : Draw x position from register vx.
@@ -28,12 +26,32 @@ class chip8_screen_manager_unit final {
 
 private:
     chip8_bitset<dimenion> screen_buffer;
+    chip8_display_clear_callback user_clear;
+    chip8_display_draw_callback user_draw;
 
 public:
     /**
      * Constructor 
      **/
     chip8_screen_manager_unit( );
+
+    /**
+     * set_clear_callback method
+     * @note Set clear callback.
+     * @param callback : Target clear callback.
+     **/
+    void set_clear_callback(
+        chip8_display_clear_callback&& callback
+    );
+    
+    /**
+     * set_draw_callback method
+     * @note Set draw callback.
+     * @param callback : Target draw callback.
+     **/
+    void set_draw_callback(
+        chip8_display_draw_callback&& callback
+    );
 
     /**
      * clear method
@@ -74,6 +92,23 @@ private:
         const uint8_t y,
         const bool is_on
     );
+
+    /**
+     * draw_sprite method
+     * @note Draw a sprite on screen using payload data.
+     * @param mmu : Reference to currrent memory manager unit.
+     * @param sprite_payload : Target sprite payload to render.
+     **/
+    void draw_sprite(
+        chip8_memory_manager_unit& mmu,
+        const chip8_sprite_payload& sprite_payload
+    );
+
+    /**
+     * invoke_user_draw method
+     * @note Proxy method to invoke the user draw callback.
+     **/
+    void invoke_user_draw( );
 
 public:
     /**

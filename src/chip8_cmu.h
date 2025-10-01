@@ -3,17 +3,6 @@
 #include "chip8_cpu_option_manager.h"
 
 /**
- * Define chip8_get_key function signature.
- * @note Any function that match can be use to define 
- *       cpu get_key callback.
- **/
-using chip8_get_key = std::function<uint8_t(
-    const uint16_t,
-    const chip8_cpu_manager_unit&,
-    const chip8_memory_manager_unit&
-)>;
-
-/**
  * chip8_cpu_manager_unit class
  * @note Store and manage cpu specific logic.
  **/
@@ -24,7 +13,7 @@ struct chip8_cpu_manager_unit final {
     chip8_cpu_timer_manager timers;
     chip8_cpu_opcode_manager opcodes;
     chip8_cpu_option_manager options;
-    chip8_get_key get_key_callback;
+    chip8_get_key_callback user_get_key;
 
     /**
      * Constructor
@@ -39,6 +28,13 @@ struct chip8_cpu_manager_unit final {
         const bool enable_print,
         const bool enable_stack_limit
     );
+
+    /**
+     * set_make_noise method
+     * @note Set make noise callback.
+     * @param callback : Target callback.
+     **/
+    void set_make_noise( chip8_make_noise_callback&& callback );
 
     /**
      * reset method
@@ -91,7 +87,7 @@ struct chip8_cpu_manager_unit final {
      * @note Set get key callback.
      * @param callback : Target get key callback.
      **/
-    void set_key_callback( chip8_get_key&& callback );
+    void set_key_callback( chip8_get_key_callback&& callback );
 
     /**
      * print_instruction method

@@ -11,12 +11,20 @@ class chip8_cpu_timer_manager final {
 private:
     std::atomic<uint8_t> delay_timer;
     std::atomic<uint8_t> sound_timer;
+    chip8_make_noise_callback user_make_noise;
 
 public:
     /**
      * Constructor
      **/
     chip8_cpu_timer_manager( );
+
+    /**
+     * set_make_noise method
+     * @note Set make noise callback.
+     * @param callback : Target callback.
+     **/
+    void set_make_noise( chip8_make_noise_callback&& callback );
 
     /**
      * reset method
@@ -49,6 +57,13 @@ public:
      * @note Dump timers values.
      **/
     void dump( ) const;
+
+private:
+    /**
+     * invoke_make_noise method
+     * @note Proxy for invoking make noise callback.
+     **/
+    void invoke_make_noise( );
 
 public:
     /**

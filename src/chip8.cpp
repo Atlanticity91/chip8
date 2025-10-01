@@ -61,8 +61,20 @@ void chip8::override_opcode(
     cpu.register_op( opcode, opcode_name, std::move( implementation ) );
 }
 
-void chip8::override_key_callback( chip8_get_key&& callback ) {
+void chip8::override_key_callback( chip8_get_key_callback&& callback ) {
     cpu.set_key_callback( std::move( callback ) );
+}
+
+void chip8::set_make_noise( chip8_make_noise_callback&& callback ) {
+    cpu.set_make_noise( std::move( callback ) );
+}
+
+void chip8::set_clear_callback( chip8_display_clear_callback&& callback ) {
+    smu.set_clear_callback( std::move( callback ) );
+}
+
+void chip8::set_draw_callback( chip8_display_draw_callback&& callback ) {
+    smu.set_draw_callback( std::move( callback ) );
 }
 
 void chip8::set_delay_timer( const uint8_t value ) {
@@ -259,4 +271,12 @@ uint8_t chip8::get_exit_code( ) const {
 
 const uint8_t* chip8::get_screen_buffer( ) const {
     return smu.get_screen_buffer( );
+}
+
+uint8_t chip8::get_delay_timer( ) const {
+    return cpu.get_delay_timer( );
+}
+
+uint8_t chip8::get_sound_timer( ) const {
+    return cpu.get_sound_timer( );
 }

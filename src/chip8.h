@@ -88,7 +88,32 @@ public:
      * @note Set get key callback.
      * @param callback : Target get key callback.
      **/
-    void override_key_callback( chip8_get_key&& callback );
+    void override_key_callback( chip8_get_key_callback&& callback );
+
+    /**
+     * set_make_noise method
+     * @note Set make noise callback.
+     * @param callback : Target callback.
+     **/
+    void set_make_noise( chip8_make_noise_callback&& callback );
+
+    /**
+     * set_clear_callback method
+     * @note Set clear callback.
+     * @param callback : Target clear callback.
+     **/
+    void set_clear_callback(
+        chip8_display_clear_callback&& callback
+    );
+    
+    /**
+     * set_draw_callback method
+     * @note Set draw callback.
+     * @param callback : Target draw callback.
+     **/
+    void set_draw_callback(
+        chip8_display_draw_callback&& callback
+    );
 
     /**
      * set_delay_timer method
@@ -243,5 +268,19 @@ public:
      * @return Pointer to imutable screen buffer.
      **/
     const uint8_t* get_screen_buffer( ) const;
+
+    /**
+     * get_delay_timer function
+     * @note Get delay timer value.
+     * @return Delay timer value.
+     **/
+    uint8_t get_delay_timer( ) const;
+
+    /**
+     * get_sound_timer function
+     * @note Get sound timer value.
+     * @return Sound timer value.
+     **/
+    uint8_t get_sound_timer( ) const;
 
 };
